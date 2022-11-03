@@ -1,7 +1,9 @@
+import uuid
 class Config(object):
   DEBUG = False
   TESTING = False
   SQLACHEMY_TRACK_MODIFICATIONS = False
+  SECRET_KEY = uuid.uuid4().hex
 
 class ProductionConfig(Config):
   SQLALCHEMY_DATABASE_URI = ''

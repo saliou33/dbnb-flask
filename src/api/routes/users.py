@@ -2,13 +2,23 @@ from flask import Blueprint
 from flask import request
 from api.utils.responses import response_with
 from api.utils import responses as resp
-from api.models.users import User, UserSchema
+from api.models.users import User, UserSchema, UserSchemaUpdate
 from api.utils.database import db
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
 from sqlalchemy import exc
+import datetime
+import traceback
 
 user_routes = Blueprint("user_routes", __name__)
+
+@user_routes.route('/', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    user_schema = UserSchema(many=True, exclude=['password'])
+    users = user_schema.dump(users)
+    return response_with(resp.SUCCESS_200, value={'users': users})
+  
 
 @user_routes.route('/', methods=['POST'])
 def create_user():
@@ -30,7 +40,49 @@ def create_user():
  
 @user_routes.route('/', methods=['PUT'])
 def update_user():
-  pass
+  try:
+    data = request.get_json()
+    user_schema = UserSchemaUpdate()
+    user = user_schema.load(data)
+    #  check if user exit
+    current_user = User.query.filter_by(id=user['id']).first()
+    if not current_user:
+      raise ValidationError({"id": "User is not found"});
+
+    #check password
+    if not User.verify_hash(user['password'], current_user.password):
+      raise ValidationError({"password": "Password is not correct"});
+
+    # validate new password
+    if 'new_password' in user and user['new_password']:
+      if 'confirm_password' in user:
+        if user['new_password'] == user['confirm_password']:
+          current_user.password = User.generate_hash(user['new_password']);
+        else:
+          raise ValidationError({"new_password": "Password mismatch"})
+      else:
+        raise ValidationError({"confirm_password": "Field is required for confirming password"})
+    elif 'confirm_password' in user:
+      raise ValidationError({"new_password": "Password mistmatch"})
+
+    # update user
+    if 'tel' in user:
+      current_user.tel = user['tel']
+    current_user.email = user['email']
+    current_user.updated_at  = datetime.datetime.now()
+
+    db.session.commit()
+
+    return response_with(resp.SUCCESS_200, value={'message': 'User updated successfully'})
+  except ValidationError as e:
+    return response_with(resp.INVALID_INPUT_422, 
+      value={'message': 'User update error', 'errors': e.messages})
+  except exc.SQLAlchemyError as e:
+    return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
+  except Exception as e:
+    print(traceback.format_exc())
+    return response_with(resp.SERVER_ERROR_500)
+
 
 @user_routes.route('/', methods=['DELETE'])
 def delete_user():
