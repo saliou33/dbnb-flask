@@ -1,13 +1,13 @@
 from api.utils.database import db, ma
 from datetime import datetime
 from passlib.hash import pbkdf2_sha256 as sha256
-from marshmallow import fields, validate, validates, Schema, ValidationError
+from marshmallow import fields, validate , Schema
 
 class User(db.Model):
   id = db.Column(db.Integer, primary_key=True, autoincrement=True)
   name = db.Column(db.String(100), nullable=False)
   email = db.Column(db.String(120), unique=True, nullable=False)
-  tel = db.Column(db.Integer, unique=True)
+  tel = db.Column(db.String(25), unique=True)
   password = db.Column(db.String(68), nullable=False)
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   updated_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -47,11 +47,11 @@ class UserSchema(ma.SQLAlchemySchema):
   email = fields.Email(required=True)
   password = fields.Str(required=True, 
   validate=validate.Length(min=8, max=64))
-  tel = fields.Int()
+  tel = fields.Str(validate=validate.Regexp("^\\+?[1-9][0-9]{7,14}$"))
   created_at = ma.auto_field()
   updated_at = ma.auto_field()
 
-class UserSchemaUpdate(Schema):
+class UserUpdateSchema(Schema):
   class Meta:
     fields = ("id","email", "name", "password", "new_password", "confirm_password", "tel")
 
@@ -61,6 +61,4 @@ class UserSchemaUpdate(Schema):
   confirm_password = fields.Str()
   email = fields.Email(required=True)
   name = fields.Str(validate=validate.Length(max=100))
-  tel = fields.Str(validate=validate.Length(min=9))
-
-
+  tel = fields.Str(validate=validate.Regexp("^\\+?[0-9]{9,}$"))

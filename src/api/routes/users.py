@@ -1,8 +1,7 @@
-from flask import Blueprint
-from flask import request
+from flask import Blueprint, request
 from api.utils.responses import response_with
 from api.utils import responses as resp
-from api.models.users import User, UserSchema, UserSchemaUpdate
+from api.models.users import User, UserSchema, UserUpdateSchema
 from api.utils.database import db
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
@@ -10,6 +9,7 @@ from sqlalchemy import exc
 import datetime
 import traceback
 
+# Demandeur routes
 user_routes = Blueprint("user_routes", __name__)
 
 @user_routes.route('/', methods=['GET'])
@@ -19,7 +19,13 @@ def get_users():
     users = user_schema.dump(users)
     return response_with(resp.SUCCESS_200, value={'users': users})
   
-
+@user_routes.route('/<int:id>', methods=['GET'])
+def get_user(id):
+    user = User.query.filter_by(id=id)
+    user_schema = UserSchema(exclude=['password'])
+    user = user_schema.dump(user)
+    return response_with(resp.SUCCESS_200, value={'user': user})
+  
 @user_routes.route('/', methods=['POST'])
 def create_user():
   try:
@@ -42,7 +48,7 @@ def create_user():
 def update_user():
   try:
     data = request.get_json()
-    user_schema = UserSchemaUpdate()
+    user_schema = UserUpdateSchema()
     user = user_schema.load(data)
     #  check if user exit
     current_user = User.query.filter_by(id=user['id']).first()
@@ -70,7 +76,6 @@ def update_user():
       current_user.tel = user['tel']
     current_user.email = user['email']
     current_user.updated_at  = datetime.datetime.now()
-
     db.session.commit()
 
     return response_with(resp.SUCCESS_200, value={'message': 'User updated successfully'})

@@ -7,6 +7,7 @@ from api.config import *
 from api.utils.responses import response_with
 from api.utils import responses as resp
 from api.routes.users import user_routes
+from api.routes.demandeurs import demandeur_routes
 
 app = Flask(__name__)
 
@@ -20,6 +21,7 @@ else:
 
 # app routes
 app.register_blueprint(user_routes, url_prefix='/api/users')
+app.register_blueprint(demandeur_routes, url_prefix='/api/demandeurs')
 
 # global http response config
 @app.after_request
@@ -41,7 +43,6 @@ def not_found(e):
   app.logger.info(e)
   return response_with(resp.SERVER_ERROR_404)
 
-
 # app config
 app.config.from_object(app_config)
 jwt = JWTManager(app)
@@ -49,7 +50,6 @@ db.init_app(app)
 ma.init_app(app)
 with app.app_context():
   db.create_all()
-
 
 if __name__ == "__main__":
   app.run(port=5000, host='0.0.0.0', use_reloader=False)

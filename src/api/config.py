@@ -4,6 +4,7 @@ class Config(object):
   TESTING = False
   SQLACHEMY_TRACK_MODIFICATIONS = False
   SECRET_KEY = uuid.uuid4().hex
+  UPLOAD_EXTENSIONS = ['xlxs', 'csv']
 
 class ProductionConfig(Config):
   SQLALCHEMY_DATABASE_URI = ''
