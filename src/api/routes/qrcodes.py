@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from api.utils.responses import response_with
 import api.utils.responses as resp
-from api.models.qrcodes import Qrcode, QrcodeSchema
+from api.models.qrcodes import Qrcode, QrcodeSchema, QrcodeOwner
 from api.models.demandeurs import Demandeur
 from api.models.groupes import Groupe
 from marshmallow import ValidationError
@@ -60,10 +60,10 @@ def generate_qrcode(bricks):
     # save file in zip
     zip_file_name = str(uuid.uuid4().hex) + ".zip"
     in_memory = BytesIO()
-    img_buffer = BytesIO()
 
     with zipfile.ZipFile(in_memory, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
         for filename, data in qrcodes:
+            img_buffer = BytesIO()
             data.save(img_buffer, 'PNG')
             img_buffer.seek(0)
             zip_file.writestr(filename, img_buffer.read())
@@ -91,7 +91,8 @@ def create_qrcode():
             owner = Groupe.find_by_id(data['owner_id'])
 
         if not owner:
-            raise ValidationError(message={'owner': 'owner with id not found'})
+            raise ValidationError(
+                message={'owner': 'owner with id is not found'})
 
         if data['owner'] == 'demandeur':
             bricks.append(owner)
@@ -105,14 +106,14 @@ def create_qrcode():
         file_id = upload_basic(zip_name, zip_path)
         link = f'https://drive.google.com/file/d/{file_id}/view?usp=share_link'
 
-        # save in database
-        qrcode = Qrcode(
-            url=link, owner=data['owner'], owner_id=data['owner_id'])
-        qrcode.create()
-        qrcode = QrcodeSchema().dump(qrcode)
-
         # cleanup
         os.remove(zip_path)
+
+        # save in database
+        qrcode = Qrcode(
+            url=link, owner=QrcodeOwner(data['owner']), owner_id=data['owner_id'])
+        qrcode.create()
+        qrcode = QrcodeSchema().dump(qrcode)
 
         return response_with(resp.SUCCESS_200, value={'message': 'Qrcodes sucefully generated', 'qrcode': qrcode})
 

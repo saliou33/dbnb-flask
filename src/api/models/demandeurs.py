@@ -15,7 +15,7 @@ class Demandeur(db.Model):
     categorie_sociale = db.Column(db.String(100))
     created_at = db.Column(db.String(100))
     is_selected = db.Column(db.Boolean, default=False)
-    expiration_date = db.Column(db.DateTime)
+    selection_expiration_date = db.Column(db.DateTime)
 
     def create(self):
         db.session.add(self)

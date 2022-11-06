@@ -15,11 +15,11 @@ class Groupe(db.Model):
         db.session.commit()
 
     def get_demandeurs(self):
-        Demandeur.query.filter_by(Demandeur.id.in_(self.demandeurs)).all()
+        return Demandeur.query.filter(Demandeur.id.in_(self.demandeurs)).all()
 
     @classmethod
     def find_by_id(cls, id):
-        cls.query.filter_by(id=id).first()
+        return cls.query.filter_by(id=id).first()
 
     def __repr__(self):
         return '<Groupe> %r' % self.id
