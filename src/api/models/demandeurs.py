@@ -2,14 +2,15 @@ from api.utils.database import db, ma
 from datetime import datetime
 from passlib.hash import md5_crypt
 from marshmallow import fields, validate, validates, Schema, ValidationError
+import numpy as np
 
 
 class Demandeur(db.Model):
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     nom = db.Column(db.String(100), nullable=False)
     prenom = db.Column(db.String(100), nullable=False)
-    tel = db.Column(db.String(25), unique=True)
-    cni = db.Column(db.String(100), unique=True)
+    tel = db.Column(db.String(25), unique=True, nullable=False)
+    cni = db.Column(db.String(100), unique=True, nullable=False)
     numero_depot = db.Column(db.String(50))
     categorie_sociale = db.Column(db.String(100))
     created_at = db.Column(db.String(100))
@@ -43,13 +44,6 @@ class DemandeurSchema(ma.SQLAlchemySchema):
     categorie_sociale = fields.Str()
 
 
-class DemandeurGetSchema(Schema):
-    class Meta:
-        fields = ('id',)
-
-    id = fields.Int(required=True)
-
-
 class DemandeurUpdateSchema(Schema):
     class Meta:
         fields = ('id', 'nom', 'prenom', 'cni',
@@ -61,3 +55,19 @@ class DemandeurUpdateSchema(Schema):
     cni = fields.Str()
     categorie_sociale = fields.Str()
     tel = fields.Str(validate=validate.Regexp("^\\+?[1-9][0-9]{7,14}$"))
+
+
+class DemandeurMeta():
+    columns = {'CNI': np.str0,
+               'Téléphone': np.str0,
+               'Numéro dépôt Courrier': np.str0,
+               'Catégorie Sociale': np.str0,
+               'Prénom': np.str0,
+               'Nom': np.str0}
+
+    mapping = {'cni': 'CNI',
+               'tel': 'Téléphone',
+               'numero_depot': 'Numéro dépôt Courrier',
+               'categorie_sociale': 'Catégorie Sociale',
+               'prenom': 'Prénom',
+               'nom': 'Nom'}
