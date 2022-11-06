@@ -1,4 +1,3 @@
-import traceback
 from flask import Blueprint, request
 from api.utils.responses import response_with
 import api.utils.responses as resp
@@ -8,11 +7,13 @@ from api.models.groupes import Groupe
 from marshmallow import ValidationError
 from api.config import Config
 from cryptography.fernet import Fernet
-import zipfile
+from api.utils.drive import upload_basic
 from io import BytesIO
+import traceback
+import zipfile
+import qrcode
 import uuid
 import os
-import qrcode
 
 qrcode_routes = Blueprint("qrcode_routes", __name__)
 
@@ -67,10 +68,11 @@ def generate_qrcode(bricks):
             img_buffer.seek(0)
             zip_file.writestr(filename, img_buffer.read())
 
-    with open(os.path.join(Config.UPLOAD_PATH, zip_file_name), "wb") as f:
+    zip_file_path = os.path.join(Config.UPLOAD_PATH, zip_file_name)
+    with open(zip_file_path, "wb") as f:
         f.write(in_memory.getvalue())
 
-    return zip_file_name
+    return zip_file_name, zip_file_path
 
 
 @qrcode_routes.route("/", methods=['POST'])
@@ -78,10 +80,11 @@ def create_qrcode():
     try:
         data = request.get_json()
         schema = QrcodeSchema(exclude=['id', 'created_at', 'url'])
-        fields = schema.load(data)
+        schema.load(data)
         bricks = []
         owner = None
 
+        # validation
         if data['owner'] == 'demandeur':
             owner = Demandeur.find_by_id(data['owner_id'])
         else:
@@ -95,7 +98,23 @@ def create_qrcode():
         else:
             bricks = owner.get_demandeurs()
 
-        zip_file = generate_qrcode(bricks)
+        # generate qrcode in zipfile
+        zip_name, zip_path = generate_qrcode(bricks)
+
+        # upload file
+        file_id = upload_basic(zip_name, zip_path)
+        link = f'https://drive.google.com/file/d/{file_id}/view?usp=share_link'
+
+        # save in database
+        qrcode = Qrcode(
+            url=link, owner=data['owner'], owner_id=data['owner_id'])
+        qrcode.create()
+        qrcode = QrcodeSchema().dump(qrcode)
+
+        # cleanup
+        os.remove(zip_path)
+
+        return response_with(resp.SUCCESS_200, value={'message': 'Qrcodes sucefully generated', 'qrcode': qrcode})
 
     except ValidationError as e:
         print(traceback.format_exc())

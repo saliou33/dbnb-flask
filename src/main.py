@@ -13,6 +13,7 @@ from api.routes.qrcodes import qrcode_routes
 app = Flask(__name__)
 
 #  environment variables
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = Config.GOOGLE_CREDENTIALS_PATH
 if os.environ.get('WORK_ENV') == 'PROD':
     app_config = ProductionConfig
 elif os.environ.get('WORK_ENV') == 'TEST':

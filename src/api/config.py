@@ -11,6 +11,9 @@ class Config(object):
     UPLOAD_PATH = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), 'data')
     FERNET_KEY = 'juzm4Q6T9ao-ElocILKAAVFQZy6vDz1hcYruKDHL-nQ='
+    GOOGLE_CREDENTIALS_PATH = os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), 'token.json')
+    GOOGLE_FOLDER_ID = '1IlkjFPfkyLHa98aEuIxTvi3Nv3gejj9Z'
 
 
 class ProductionConfig(Config):
