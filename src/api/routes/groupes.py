@@ -4,6 +4,7 @@ from api.utils import responses as resp
 from api.models.groupes import Groupe, GroupeSchema
 from api.models.demandeurs import Demandeur
 from marshmallow import ValidationError
+from flask_jwt_extended import jwt_required
 from sqlalchemy import exc
 import traceback
 
@@ -11,6 +12,7 @@ groupe_routes = Blueprint("groupe_routes", __name__)
 
 
 @groupe_routes.route("/", methods=['GET'])
+@jwt_required()
 def get_groupes():
     try:
         data = Groupe.query.all()
@@ -26,6 +28,7 @@ def get_groupes():
 
 
 @groupe_routes.route("/<int:id>", methods=['GET'])
+@jwt_required()
 def get_groupe(id):
     try:
         data = request.get_json()
@@ -44,6 +47,7 @@ def get_groupe(id):
 
 
 @groupe_routes.route("/", methods=['POST'])
+@jwt_required()
 def create_groupe():
     try:
         data = request.get_json()

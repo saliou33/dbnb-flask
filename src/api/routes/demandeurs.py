@@ -1,10 +1,12 @@
 from flask import Blueprint, request
 from api.utils.responses import response_with
 from api.utils import responses as resp
-from api.models.demandeurs import Demandeur, DemandeurSchema, DemandeurUpdateSchema, DemandeurMeta
+from api.models.demandeurs import Demandeur, \
+    DemandeurSchema, DemandeurUpdateSchema, DemandeurMeta
 from api.config import Config
 from api.utils.database import db
 from marshmallow import ValidationError
+from flask_jwt_extended import jwt_required
 from sqlalchemy import exc
 from sqlalchemy.sql import or_
 import pandas as pd
@@ -15,6 +17,7 @@ demandeur_routes = Blueprint("demandeur_routes", __name__)
 
 
 @demandeur_routes.route("/", methods=['GET'])
+@jwt_required()
 def get_demandeurs():
     try:
         data = Demandeur.query.all()
@@ -30,6 +33,7 @@ def get_demandeurs():
 
 
 @demandeur_routes.route("/<int:id>", methods=['GET'])
+@jwt_required()
 def get_demandeur(id):
     try:
         schema = DemandeurSchema()
@@ -46,6 +50,7 @@ def get_demandeur(id):
 
 
 @demandeur_routes.route("/", methods=['POST'])
+@jwt_required()
 def create_demandeur():
     try:
         data = request.get_json()
@@ -106,6 +111,7 @@ def upload_check_demander():
 
 
 @demandeur_routes.route("/upload", methods=['POST'])
+@jwt_required()
 def upload_demandeur():
     try:
         file = request.files['file']
@@ -125,6 +131,7 @@ def upload_demandeur():
 
 
 @demandeur_routes.route("/", methods=['PUT'])
+@jwt_required()
 def update_demandeur():
     try:
         data = request.get_json()
@@ -147,5 +154,21 @@ def update_demandeur():
 
 
 @demandeur_routes.route("/", methods=['DELETE'])
+@jwt_required()
 def delete_demandeur():
-    pass
+    try:
+        data = request.get_json()
+
+        if 'id' not in data:
+            raise ValidationError(message={'id': 'key id not found'})
+
+        demandeur = Demandeur.find_by_id(id)
+        if not demandeur:
+            raise ValidationError(message={'demandeur': 'Demandeur not found'})
+        db.session.remove(demandeur)
+
+        return response_with(resp.SUCCESS_200)
+    except ValidationError as e:
+        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+    except Exception as e:
+        return response_with(resp.SERVER_ERROR_500)

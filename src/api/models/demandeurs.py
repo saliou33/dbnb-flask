@@ -42,6 +42,8 @@ class DemandeurSchema(ma.SQLAlchemySchema):
         "^\\+?[1-9][0-9]{7,14}$"))
     numero_depot = fields.Str()
     categorie_sociale = fields.Str()
+    is_selected = ma.auto_field()
+    selection_expiration_date = ma.auto_field()
 
 
 class DemandeurUpdateSchema(Schema):

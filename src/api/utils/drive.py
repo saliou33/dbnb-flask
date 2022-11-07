@@ -27,7 +27,6 @@ def upload_basic(name, path):
         # pylint: disable=maybe-no-member
         file = service.files().create(body=file_metadata, media_body=media,
                                       fields='id').execute()
-        print(F'File ID: {file.get("id")}')
 
     except HttpError as error:
         print(F'An error occurred: {error}')

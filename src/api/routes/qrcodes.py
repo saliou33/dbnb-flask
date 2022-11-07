@@ -2,12 +2,13 @@ from flask import Blueprint, request
 from api.utils.responses import response_with
 import api.utils.responses as resp
 from api.models.qrcodes import Qrcode, QrcodeSchema, QrcodeOwner
-from api.models.demandeurs import Demandeur
+from api.models.demandeurs import Demandeur, DemandeurSchema
 from api.models.groupes import Groupe
 from marshmallow import ValidationError
 from api.config import Config
 from cryptography.fernet import Fernet
 from api.utils.drive import upload_basic
+from flask_jwt_extended import jwt_required
 from io import BytesIO
 import traceback
 import zipfile
@@ -19,6 +20,7 @@ qrcode_routes = Blueprint("qrcode_routes", __name__)
 
 
 @qrcode_routes.route("/", methods=['GET'])
+@jwt_required()
 def get_qrcodes():
     try:
         qrcodes = Qrcode.query.all()
@@ -31,6 +33,7 @@ def get_qrcodes():
 
 
 @qrcode_routes.route("/<int:id>", methods=['GET'])
+@jwt_required
 def get_qrcode(id):
     try:
         schema = QrcodeSchema()
@@ -54,7 +57,6 @@ def generate_qrcode(bricks):
     # create qrcode
     qrcodes = []
     for idx, key in enumerate(keys, start=1):
-        print(key)
         qrcodes.append((str(idx) + ".png", qrcode.make(key)))
 
     # save file in zip
@@ -75,7 +77,32 @@ def generate_qrcode(bricks):
     return zip_file_name, zip_file_path
 
 
+@qrcode_routes.route("/check", methods=['POST'])
+@jwt_required()
+def get_demandeur():
+    try:
+        data = request.get_json()
+        if 'code' not in data:
+            raise ValidationError(message='code not found')
+
+        id = Fernet(Config.FERNET_KEY).decrypt(data['code']).decode('utf-8')
+        demandeur = Demandeur.find_by_id(int(id))
+
+        if not demandeur:
+            raise ValidationError(resp.BAD_REQUEST_400, )
+
+        demandeur = DemandeurSchema().dump(demandeur)
+        return response_with(resp.SUCCESS_200, value={'demnadeur': demandeur})
+
+    except ValidationError as e:
+        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+
+    except Exception as e:
+        return response_with(resp.SERVER_ERROR_500)
+
+
 @qrcode_routes.route("/", methods=['POST'])
+@jwt_required()
 def create_qrcode():
     try:
         data = request.get_json()

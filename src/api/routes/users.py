@@ -5,6 +5,7 @@ from api.models.users import User, UserSchema, UserUpdateSchema
 from api.utils.database import db
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
+from flask_jwt_extended import jwt_required
 from sqlalchemy import exc
 import datetime
 import traceback
@@ -14,6 +15,7 @@ user_routes = Blueprint("user_routes", __name__)
 
 
 @user_routes.route('/', methods=['GET'])
+@jwt_required()
 def get_users():
     users = User.query.all()
     user_schema = UserSchema(many=True, exclude=['password'])
@@ -22,6 +24,7 @@ def get_users():
 
 
 @user_routes.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_user(id):
     user = User.query.filter_by(id=id)
     user_schema = UserSchema(exclude=['password'])
@@ -49,6 +52,7 @@ def create_user():
 
 
 @user_routes.route('/', methods=['PUT'])
+@jwt_required()
 def update_user():
     try:
         data = request.get_json()
@@ -97,6 +101,7 @@ def update_user():
 
 
 @user_routes.route('/', methods=['DELETE'])
+@jwt_required()
 def delete_user():
     pass
 

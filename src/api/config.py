@@ -6,8 +6,8 @@ class Config(object):
     DEBUG = False
     TESTING = False
     SQLACHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = uuid.uuid4().hex
-    UPLOAD_EXTENSIONS = ['xlxs', 'csv']
+    JWT_SECRET_KEY = '336f3f81c6644058b593d9339153b7ca'
+    UPLOAD_EXTENSIONS = ['xlsx', 'csv']
     UPLOAD_PATH = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), 'data')
     FERNET_KEY = 'juzm4Q6T9ao-ElocILKAAVFQZy6vDz1hcYruKDHL-nQ='
