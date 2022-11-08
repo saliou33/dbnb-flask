@@ -15,19 +15,21 @@ class Config(object):
     GOOGLE_CREDENTIALS_PATH = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), 'token.json')
     GOOGLE_FOLDER_ID = '1IlkjFPfkyLHa98aEuIxTvi3Nv3gejj9Z'
+    BASE_DB = 'postgresql://dbnb:dbnb33@localhost:5432/dbnb'
+    DB_URL = os.getenv('DATABASE_URL', BASE_DB)
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', '')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://dbnb:dbnb33@localhost:5432/dbnb'
+    SQLALCHEMY_DATABASE_URI = super.DB_URL
     SQALCHEMY_ECHO = False
 
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://dbnb:dbnb33@localhost:5432/dbnb'
+    SQLALCHEMY_DATABASE_URI = super.DB_URL
     SQALCHEMY_ECHO = False
