@@ -1,5 +1,6 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
+from flask_cors import CORS
 from api.utils.database import db, ma, migrate
 from flask_jwt_extended import JWTManager
 from api.config import *
@@ -22,6 +23,13 @@ else:
     app_config = DevelopmentConfig
 
 # app routes
+
+
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({'message': 'DBNB FLASK REST API'})
+
+
 app.register_blueprint(user_routes, url_prefix='/api/users')
 app.register_blueprint(demandeur_routes, url_prefix='/api/demandeurs')
 app.register_blueprint(groupe_routes, url_prefix='/api/groupes')
@@ -55,6 +63,7 @@ def not_found(e):
 
 # app config
 app.config.from_object(app_config)
+CORS(app)
 jwt = JWTManager(app)
 db.init_app(app)
 ma.init_app(app)
@@ -63,4 +72,5 @@ with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
-    app.run(port=5000, host='0.0.0.0', use_reloader=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(port=port, host='0.0.0.0', use_reloader=False)

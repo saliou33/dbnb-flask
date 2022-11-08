@@ -1,6 +1,5 @@
-import uuid
-import os
 from dateutil.relativedelta import relativedelta
+import os
 
 
 class Config(object):
@@ -19,7 +18,7 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = ''
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', '')
 
 
 class DevelopmentConfig(Config):
