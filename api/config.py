@@ -16,8 +16,8 @@ class Config(object):
         os.path.realpath(__file__)), 'token.json')
     GOOGLE_FOLDER_ID = '1IlkjFPfkyLHa98aEuIxTvi3Nv3gejj9Z'
 
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL', 'postgresql://dbnb:dbnb33@localhost:5432/dbnb')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgres://dbnb:dbnb33@localhost:5432/dbnb')\
+        .replace("postgres://", "postgresql://", 1)
 
 
 class ProductionConfig(Config):
