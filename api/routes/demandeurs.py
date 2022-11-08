@@ -29,7 +29,7 @@ def get_demandeurs():
 
         return response_with(resp.SUCCESS_200, value={'demandeurs': demandeurs})
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -47,7 +47,7 @@ def get_demandeur(id):
 
         return response_with(resp.SUCCESS_200, value={'demandeur': demandeur})
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         return response_with(resp.SERVER_ERROR_500)
 
@@ -67,9 +67,9 @@ def select_demandeur():
                 demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'message': 'Demandeurs sucessfully selected'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs sucessfully selected'})
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -90,9 +90,9 @@ def deselect_demandeur():
                 demandeur.selection_expiration_date = None
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'message': 'Demandeurs sucessfully deselected'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs sucessfully deselected'})
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -110,7 +110,7 @@ def create_demandeur():
 
         return response_with(resp.SUCCESS_200, message='Demandeur sucessfully created')
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
@@ -159,7 +159,7 @@ def upload_check_demander():
         return response_with(resp.SUCCESS_200, value={'errors': errors})
     except Exception as e:
 
-        return response_with(resp.SERVER_ERROR_500, value={'message': repr(e)})
+        return response_with(resp.SERVER_ERROR_500, value={'msg': repr(e)})
 
 
 @demandeur_routes.route("/upload", methods=['POST'])
@@ -176,7 +176,7 @@ def upload_demandeur():
             db.session.add(demandeur)
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'message': 'Demandeurs succesffuly created'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs succesfully created'})
     except ValidationError as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -198,7 +198,7 @@ def update_demandeur():
         db.session.commit()
 
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
@@ -221,6 +221,6 @@ def delete_demandeur():
 
         return response_with(resp.SUCCES_204)
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         return response_with(resp.SERVER_ERROR_500)

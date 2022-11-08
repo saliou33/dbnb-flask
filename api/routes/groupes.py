@@ -21,7 +21,7 @@ def get_groupes():
 
         return response_with(resp.SUCCESS_200, value={'groupes': groupes})
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -40,7 +40,7 @@ def get_groupe(id):
 
         return response_with(resp.SUCCESS_200, value={'groupe': groupe})
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -62,10 +62,10 @@ def create_groupe():
                     message={'demandeurs': f"Demandeur of id({user_id}) is not found"})
         new_groupe.create()
 
-        return response_with(resp.SUCCESS_200, value={'message': 'Groupe sucessfylly created'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Groupe sucessfylly created'})
 
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:

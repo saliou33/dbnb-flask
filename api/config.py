@@ -1,4 +1,4 @@
-from dateutil.relativedelta import relativedelta
+import datetime
 import os
 
 
@@ -6,7 +6,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     SQLACHEMY_TRACK_MODIFICATIONS = False
-    JWT_ACCESS_TOKEN_EXPIRES = relativedelta(days=3)
+    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(days=3)
     JWT_SECRET_KEY = '336f3f81c6644058b593d9339153b7ca'
     UPLOAD_EXTENSIONS = ['xlsx', 'csv']
     UPLOAD_PATH = os.path.join(os.path.dirname(

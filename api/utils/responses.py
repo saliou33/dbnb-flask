@@ -64,7 +64,7 @@ def response_with(response, value=None, message=None, error=None,
     result = {}
 
     if response.get('message', None):
-        result.update({'message': response['message']})
+        result.update({'msg': response['message']})
 
     if value:
         result.update(value)

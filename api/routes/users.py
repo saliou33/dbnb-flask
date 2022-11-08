@@ -43,7 +43,7 @@ def create_user():
         return response_with(resp.SUCCESS_201)
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422,
-                             value={'message': 'User create error', 'errors': e.messages})
+                             value={'msg': 'User create error', 'errors': e.messages})
     except exc.SQLAlchemyError as e:
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
@@ -89,10 +89,10 @@ def update_user():
         current_user.updated_at = datetime.datetime.now()
         db.session.commit()
 
-        return response_with(resp.SUCCESS_200, value={'message': 'User updated successfully'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'User updated successfully'})
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422,
-                             value={'message': 'User update error', 'errors': e.messages})
+                             value={'msg': 'User update error', 'errors': e.messages})
     except exc.SQLAlchemyError as e:
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
@@ -100,10 +100,25 @@ def update_user():
         return response_with(resp.SERVER_ERROR_500)
 
 
-@user_routes.route('/', methods=['DELETE'])
+@user_routes.route("/", methods=['DELETE'])
 @jwt_required()
 def delete_user():
-    pass
+    try:
+        data = request.get_json()
+
+        if 'id' not in data:
+            raise ValidationError(message={'id': 'key id not found'})
+
+        user = User.find_by_id(id)
+        if not user:
+            raise ValidationError(message={'id': 'user not found'})
+        db.session.delete(user)
+
+        return response_with(resp.SUCCES_204)
+    except ValidationError as e:
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
+    except Exception as e:
+        return response_with(resp.SERVER_ERROR_500)
 
 
 @user_routes.route('/login', methods=['POST'])
@@ -119,10 +134,10 @@ def authenticate_user():
             access_token = create_access_token(identity=data['email'])
 
             return response_with(resp.SUCCESS_201,
-                                 value={'message': f'Logged as {current_user.name}',
+                                 value={'msg': f'Logged as {current_user.name}',
                                         'acces_token': access_token})
         else:
-            return response_with(resp.UNAUTHORIZED_403, value={'message': "Incorrect email or password"})
+            return response_with(resp.UNAUTHORIZED_403, value={'msg': "Incorrect email or password"})
     except Exception as e:
         print(e)
         return response_with(resp.INVALID_INPUT_422)

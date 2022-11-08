@@ -71,7 +71,8 @@ def generate_qrcode(bricks):
             zip_file.writestr(filename, img_buffer.read())
 
     zip_file_path = os.path.join(Config.UPLOAD_PATH, zip_file_name)
-    with open(zip_file_path, "wb") as f:
+
+    with open(zip_file_path, "wb+") as f:
         f.write(in_memory.getvalue())
 
     return zip_file_name, zip_file_path
