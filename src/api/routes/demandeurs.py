@@ -3,10 +3,13 @@ from api.utils.responses import response_with
 from api.utils import responses as resp
 from api.models.demandeurs import Demandeur, \
     DemandeurSchema, DemandeurUpdateSchema, DemandeurMeta
+from api.models.groupes import GroupeSchema
 from api.config import Config
 from api.utils.database import db
 from marshmallow import ValidationError
 from flask_jwt_extended import jwt_required
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 from sqlalchemy import exc
 from sqlalchemy.sql import or_
 import pandas as pd
@@ -49,6 +52,52 @@ def get_demandeur(id):
         return response_with(resp.SERVER_ERROR_500)
 
 
+@demandeur_routes.route("/select", methods=['POST'])
+@jwt_required()
+def select_demandeur():
+    try:
+        data = request.get_json()
+        schema = GroupeSchema(exclude=['id'])
+        schema.load(data)
+
+        for idx in data['demandeurs']:
+            demandeur = Demandeur.find_by_id(idx)
+            if demandeur and demandeur.is_selected == False:
+                demandeur.is_selected = True
+                demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
+
+        db.session.commit()
+        return response_with(resp.SUCCESS_200, value={'message': 'Demandeurs sucessfully selected'})
+    except ValidationError as e:
+        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+    except Exception as e:
+        print(traceback.format_exc())
+        return response_with(resp.SERVER_ERROR_500)
+
+
+@demandeur_routes.route("/deselect", methods=['POST'])
+@jwt_required()
+def deselect_demandeur():
+    try:
+        data = request.get_json()
+        schema = GroupeSchema(exclude=['id'])
+        schema.load(data)
+
+        for idx in data['demandeurs']:
+            demandeur = Demandeur.find_by_id(idx)
+            if demandeur and demandeur.is_selected == True:
+                demandeur.is_selected = False
+                demandeur.selection_expiration_date = None
+
+        db.session.commit()
+        return response_with(resp.SUCCESS_200, value={'message': 'Demandeurs sucessfully deselected'})
+    except ValidationError as e:
+        return response_with(resp.INVALID_INPUT_422, message=e.messages)
+    except Exception as e:
+        print(traceback.format_exc())
+        return response_with(resp.SERVER_ERROR_500)
+
+
 @demandeur_routes.route("/", methods=['POST'])
 @jwt_required()
 def create_demandeur():
@@ -59,9 +108,9 @@ def create_demandeur():
         demandeur = Demandeur(**demandeur)
         demandeur.create()
 
-        return response_with(resp.SUCCESS_200, value={'message': 'Demandeur sucessfully created'})
+        return response_with(resp.SUCCESS_200, message='Demandeur sucessfully created')
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, message=e.messages)
     except exc.SQLAlchemyError as e:
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
@@ -94,6 +143,8 @@ def read_file(file):
         raise ValidationError(message={'file': 'File not found'})
 
 
+@demandeur_routes.route("/upload_check", methods=['POST'])
+@jwt_required()
 def upload_check_demander():
     try:
         file = request.files['file']
@@ -105,9 +156,10 @@ def upload_check_demander():
             if demandeur:
                 errors.append(row.to_dict())
 
-        return errors
+        return response_with(resp.SUCCESS_200, value={'errors': errors})
     except Exception as e:
-        print(traceback.format_exc())
+
+        return response_with(resp.SERVER_ERROR_500, value={'message': repr(e)})
 
 
 @demandeur_routes.route("/upload", methods=['POST'])
@@ -165,9 +217,9 @@ def delete_demandeur():
         demandeur = Demandeur.find_by_id(id)
         if not demandeur:
             raise ValidationError(message={'demandeur': 'Demandeur not found'})
-        db.session.remove(demandeur)
+        db.session.delete(demandeur)
 
-        return response_with(resp.SUCCESS_200)
+        return response_with(resp.SUCCES_204)
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, message=e.messages)
     except Exception as e:
