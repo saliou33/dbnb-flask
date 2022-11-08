@@ -10,10 +10,10 @@ class Config(object):
     JWT_SECRET_KEY = '336f3f81c6644058b593d9339153b7ca'
     UPLOAD_EXTENSIONS = ['xlsx', 'csv']
     UPLOAD_PATH = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), 'data')
+        os.path.abspath(__file__)), 'data')
     FERNET_KEY = 'juzm4Q6T9ao-ElocILKAAVFQZy6vDz1hcYruKDHL-nQ='
     GOOGLE_CREDENTIALS_PATH = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), 'token.json')
+        os.path.abspath(__file__)), 'token.json')
     GOOGLE_FOLDER_ID = '1IlkjFPfkyLHa98aEuIxTvi3Nv3gejj9Z'
 
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgres://dbnb:dbnb33@localhost:5432/dbnb')\
