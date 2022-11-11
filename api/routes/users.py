@@ -6,6 +6,7 @@ from api.utils.database import db
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
 from flask_jwt_extended import jwt_required
+from api.config import Config
 from sqlalchemy import exc
 import datetime
 import traceback
@@ -131,7 +132,8 @@ def authenticate_user():
             return response_with(resp.INVALID_INPUT_422)
 
         if User.verify_hash(data["password"], current_user.password):
-            access_token = create_access_token(identity=data['email'])
+            access_token = create_access_token(
+                identity=data['email'], expires_delta=Config.JWT_ACCESS_TOKEN_EXPIRES)
 
             return response_with(resp.SUCCESS_201,
                                  value={'msg': f'Logged as {current_user.name}',
