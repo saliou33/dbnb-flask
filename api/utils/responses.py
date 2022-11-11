@@ -50,12 +50,12 @@ SUCCESS_200 = {
 
 SUCCESS_201 = {
     "http_code": 201,
-    "code": "succes"
+    "code": "success"
 }
 
 SUCCESS_204 = {
     "http_code": 204,
-    "code": "succes"
+    "code": "success"
 }
 
 
