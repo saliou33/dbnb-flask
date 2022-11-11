@@ -93,7 +93,7 @@ def get_demandeur():
             raise ValidationError(resp.BAD_REQUEST_400, )
 
         demandeur = DemandeurSchema().dump(demandeur)
-        return response_with(resp.SUCCESS_200, value={'demnadeur': demandeur})
+        return response_with(resp.SUCCESS_200, value={'demandeur': demandeur})
 
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, message=e.messages)
