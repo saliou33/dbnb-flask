@@ -99,6 +99,7 @@ def get_demandeur():
         return response_with(resp.INVALID_INPUT_422, message=e.messages)
 
     except Exception as e:
+        print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
 
