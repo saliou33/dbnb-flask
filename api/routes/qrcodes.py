@@ -72,7 +72,7 @@ def generate_qrcode(bricks):
             img_buffer.seek(0)
             zip_file.writestr(filename, img_buffer.read())
 
-    temp = tempfile.TemporaryFile(delete=False)
+    temp = tempfile.NamedTemporaryFile(suffix='33_.zip', delete=False)
     temp.write(in_memory.getvalue())
     temp.seek(0)
 
