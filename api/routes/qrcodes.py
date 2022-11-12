@@ -9,8 +9,10 @@ from api.config import Config
 from cryptography.fernet import Fernet
 from api.utils.drive import upload_basic
 from flask_jwt_extended import jwt_required
+from datetime import datetime
 from io import BytesIO
 import traceback
+import tempfile
 import zipfile
 import qrcode
 import uuid
@@ -70,12 +72,14 @@ def generate_qrcode(bricks):
             img_buffer.seek(0)
             zip_file.writestr(filename, img_buffer.read())
 
-    zip_file_path = os.path.join(Config.UPLOAD_PATH, zip_file_name)
+    temp = tempfile.TemporaryFile(delete=False)
+    temp.write(in_memory.getvalue())
+    temp.seek(0)
 
-    with open(zip_file_path, "wb") as f:
-        f.write(in_memory.getvalue())
+    # upload file
+    file_id = upload_basic(zip_file_name, temp.name)
 
-    return zip_file_name, zip_file_path
+    return file_id
 
 
 @qrcode_routes.route("/check", methods=['POST'])
@@ -128,23 +132,17 @@ def create_qrcode():
         else:
             bricks = owner.get_demandeurs()
 
-        # generate qrcode in zipfile
-        zip_name, zip_path = generate_qrcode(bricks)
-
-        # upload file
-        file_id = upload_basic(zip_name, zip_path)
-        link = f'https://drive.google.com/file/d/{file_id}/view?usp=share_link'
-
-        # cleanup
-        os.remove(zip_path)
+        # generate and uplod qrcode in zipfile
+        file_id = generate_qrcode(bricks)
 
         # save in database
+        link = f'https://drive.google.com/file/d/{file_id}/view?usp=share_link'
         qrcode = Qrcode(
             url=link, owner=QrcodeOwner(data['owner']), owner_id=data['owner_id'])
         qrcode.create()
         qrcode = QrcodeSchema().dump(qrcode)
 
-        return response_with(resp.SUCCESS_200, value={'message': 'Qrcodes sucefully generated', 'qrcode': qrcode})
+        return response_with(resp.SUCCESS_200, value={'message': 'Qrcodes successfully generated', 'qrcode': qrcode})
 
     except ValidationError as e:
         print(traceback.format_exc())

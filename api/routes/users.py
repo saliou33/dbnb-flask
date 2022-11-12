@@ -43,9 +43,11 @@ def create_user():
         result = user_schema.dump(user.create())
         return response_with(resp.SUCCESS_201)
     except ValidationError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422,
                              value={'msg': 'User create error', 'errors': e.messages})
     except exc.SQLAlchemyError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
         print(e)
@@ -92,9 +94,11 @@ def update_user():
 
         return response_with(resp.SUCCESS_200, value={'msg': 'User updated successfully'})
     except ValidationError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422,
                              value={'msg': 'User update error', 'errors': e.messages})
     except exc.SQLAlchemyError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
     except Exception as e:
         print(traceback.format_exc())
@@ -108,7 +112,7 @@ def delete_user():
         data = request.get_json()
 
         if 'id' not in data:
-            raise ValidationError(message={'id': 'key id not found'})
+            raise ValidationError(message={'id': 'Field id is required'})
 
         user = User.find_by_id(id)
         if not user:
@@ -117,8 +121,10 @@ def delete_user():
 
         return response_with(resp.SUCCES_204)
     except ValidationError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
+        print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
 
@@ -141,5 +147,5 @@ def authenticate_user():
         else:
             return response_with(resp.UNAUTHORIZED_403, value={'msg': "Incorrect email or password"})
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422)

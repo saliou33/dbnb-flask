@@ -22,8 +22,7 @@ def upload_basic(name, path):
         service = build('drive', 'v3', credentials=creds)
 
         file_metadata = {'name': name, 'parents': [Config.GOOGLE_FOLDER_ID]}
-        media = MediaFileUpload(path,
-                                mimetype='application/zip',)
+        media = MediaFileUpload(path, mimetype='application/zip')
         # pylint: disable=maybe-no-member
         file = service.files().create(body=file_metadata, media_body=media,
                                       fields='id').execute()

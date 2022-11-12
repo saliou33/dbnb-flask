@@ -67,7 +67,7 @@ def select_demandeur():
                 demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs sucessfully selected'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs successfully selected'})
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
@@ -90,7 +90,7 @@ def deselect_demandeur():
                 demandeur.selection_expiration_date = None
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs sucessfully deselected'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs successfully deselected'})
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
@@ -108,7 +108,7 @@ def create_demandeur():
         demandeur = Demandeur(**demandeur)
         demandeur.create()
 
-        return response_with(resp.SUCCESS_200, message='Demandeur sucessfully created')
+        return response_with(resp.SUCCESS_200, message='Demandeur successfully created')
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
@@ -212,7 +212,7 @@ def delete_demandeur():
         data = request.get_json()
 
         if 'id' not in data:
-            raise ValidationError(message={'id': 'key id not found'})
+            raise ValidationError(message={'id': 'Field id is required'})
 
         demandeur = Demandeur.find_by_id(id)
         if not demandeur:
