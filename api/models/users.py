@@ -37,7 +37,7 @@ class User(db.Model):
         return cls.query.filter_by(email=email).first()
 
     def __repr__(self):
-        return '<Use %r>' % self.name
+        return '<User %r>' % self.name
 
 
 class UserSchema(ma.SQLAlchemySchema):

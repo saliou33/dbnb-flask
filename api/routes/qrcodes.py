@@ -9,7 +9,6 @@ from api.config import Config
 from cryptography.fernet import Fernet
 from api.utils.drive import upload_basic
 from flask_jwt_extended import jwt_required
-from datetime import datetime
 from io import BytesIO
 import traceback
 import tempfile
@@ -41,7 +40,7 @@ def get_qrcode(id):
         schema = QrcodeSchema()
         qrcode = Qrcode.find_by_id(id)
         if not qrcode:
-            raise ValidationError(message={'id': 'Demandeur not found'})
+            raise ValidationError(message='Le Qrcode n\'existe pas')
         qrcode = schema.dump(qrcode)
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})

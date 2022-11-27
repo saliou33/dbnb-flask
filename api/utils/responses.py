@@ -1,46 +1,36 @@
 from flask import make_response, jsonify
 
-INVALID_FIELD_NAME_SENT_422 = {
-    "http_code": 422,
-    "code": "invalidField",
-    "message": "Invalid Field"
-}
 
 INVALID_INPUT_422 = {
     "http_code": 422,
-    "code": "invalidInput",
-    "message": "Invalid Input"
+    "code": "invalideInput",
+    "msg": "Champs Invalide"
 }
 
-MISSING_PARAMETERS_422 = {
-    "http_code": 422,
-    "code": "missingParameters",
-    "message": "Missing paremters"
-}
 
 BAD_REQUEST_400 = {
     "http_code": 400,
     "code": "badRequest",
-    "message": "Bad Request"
+    "msg": "Mauvaise Requête"
 }
 
 SERVER_ERROR_500 = {
     "http_code": 500,
     "code": "serverError",
-    "message": "Server error"
+    "msg": "Erreur Serveur"
 }
 
 SERVER_ERROR_404 = {
     "http_code": 404,
     "code": "notFound",
-    "message": "Ressource not Found"
+    "msg": "Ressource Introuvable"
 }
 
 
 UNAUTHORIZED_403 = {
     "http_code": 403,
     "code": "notAuthorized",
-    "message": "You don't have the authorization for this action"
+    "msg": "Vous n'avez pas l'autorisation pour cette action"
 }
 
 SUCCESS_200 = {
@@ -63,8 +53,11 @@ def response_with(response, value=None, message=None, error=None,
                   headers={}, pagination=None):
     result = {}
 
-    if response.get('message', None):
-        result.update({'msg': response['message']})
+    if response.get('msg', None):
+        result.update({'msg': response['msg']})
+
+    if message:
+        result.update({'msg': message})
 
     if value:
         result.update(value)

@@ -42,7 +42,7 @@ def get_demandeur(id):
         schema = DemandeurSchema()
         demandeur = Demandeur.find_by_id(id)
         if not demandeur:
-            raise ValidationError(message={'id': 'Demandeur not found'})
+            raise ValidationError(message='Le demandeur n\'existe pas')
         demandeur = schema.dump(demandeur)
 
         return response_with(resp.SUCCESS_200, value={'demandeur': demandeur})
@@ -67,7 +67,7 @@ def select_demandeur():
                 demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs successfully selected'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs séléctionnés avec succés'})
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
@@ -90,7 +90,7 @@ def deselect_demandeur():
                 demandeur.selection_expiration_date = None
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs successfully deselected'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs désavoué avec succés'})
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
@@ -108,7 +108,7 @@ def create_demandeur():
         demandeur = Demandeur(**demandeur)
         demandeur.create()
 
-        return response_with(resp.SUCCESS_200, message='Demandeur successfully created')
+        return response_with(resp.SUCCESS_200, message='Demandeur créé avec succés')
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
@@ -132,15 +132,15 @@ def read_file(file):
             if not set(columns.keys()).issubset(data.columns):
 
                 raise ValidationError(
-                    message={'file': 'Missing or Invalid Column Name'})
+                    message='Colonnes Invalides ou Manquantes')
 
             return data
         else:
             raise ValidationError(
-                message={'file': 'Only .xlsx or .csv files allowed'})
+                message='Seul les fichiers de type .xls ou csv valide sont acceptés')
 
     else:
-        raise ValidationError(message={'file': 'File not found'})
+        raise ValidationError(message='Fichier Introuvable')
 
 
 @demandeur_routes.route("/upload_check", methods=['POST'])
@@ -156,7 +156,7 @@ def upload_check_demander():
             if demandeur:
                 errors.append(row.to_dict())
 
-        return response_with(resp.SUCCESS_200, value={'errors': errors})
+        return response_with(resp.SUCCESS_200, value={'msg': errors})
     except Exception as e:
 
         return response_with(resp.SERVER_ERROR_500, value={'msg': repr(e)})
@@ -176,7 +176,7 @@ def upload_demandeur():
             db.session.add(demandeur)
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs succesfully created'})
+        return response_with(resp.SUCCESS_200, message='Demandeur créé avec succés')
     except ValidationError as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
@@ -192,7 +192,7 @@ def update_demandeur():
         demandeur = Demandeur.find_by_id(data['id'])
 
         if not demandeur:
-            raise ValidationError(message={'id': 'Demandeur not found'})
+            raise ValidationError(message='Le demandeur n\'existe pas')
 
         Demandeur.query.upate(demandeur, demandeur)
         db.session.commit()
@@ -200,7 +200,7 @@ def update_demandeur():
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
-        return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': str(e.orig)})
     except Exception as e:
         return response_with(resp.SERVER_ERROR_500)
 

@@ -37,7 +37,7 @@ def get_groupe(id):
         groupe_schema = GroupeSchema()
         groupe = Groupe.find_by_id(data['id'])
         if not groupe:
-            raise ValidationError(message={'id': 'Groupe not found'})
+            raise ValidationError(message='Le groupe n\'existe pas')
         groupe = groupe_schema.dump(groupe)
 
         return response_with(resp.SUCCESS_200, value={'groupe': groupe})
@@ -62,10 +62,10 @@ def create_groupe():
             demandeur = Demandeur.find_by_id(user_id)
             if not demandeur:
                 raise ValidationError(
-                    message={'demandeurs': f"Demandeur({user_id}) not found"})
+                    message='Le demandeur n\'existe pas')
         new_groupe.create()
 
-        return response_with(resp.SUCCESS_200, value={'msg': 'Groupe successfully created'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Groupe créé avec succés'})
 
     except ValidationError as e:
         print(traceback.format_exc())

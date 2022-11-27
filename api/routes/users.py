@@ -5,7 +5,7 @@ from api.models.users import User, UserSchema, UserUpdateSchema
 from api.utils.database import db
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from api.config import Config
 from sqlalchemy import exc
 import datetime
@@ -45,10 +45,10 @@ def create_user():
     except ValidationError as e:
         print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422,
-                             value={'msg': 'User create error', 'errors': e.messages})
+                             value={'msg': e.messages})
     except exc.SQLAlchemyError as e:
         print(traceback.format_exc())
-        return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': str(e.orig)})
     except Exception as e:
         print(e)
         return response_with(resp.SERVER_ERROR_500)
@@ -64,11 +64,12 @@ def update_user():
         #  check if user exit
         current_user = User.query.filter_by(id=user['id']).first()
         if not current_user:
-            raise ValidationError({"id": "User is not found"})
+            raise ValidationError(message='L\'utilsateur n\'existe pas')
 
         # check password
         if not User.verify_hash(user['password'], current_user.password):
-            raise ValidationError({"password": "Password is not correct"})
+            raise ValidationError(
+                {"password": "Le mot de passe est incorrect"})
 
         # validate new password
         if 'new_password' in user and user['new_password']:
@@ -78,12 +79,13 @@ def update_user():
                         user['new_password'])
                 else:
                     raise ValidationError(
-                        {"new_password": "Password mismatch"})
+                        {"new_password": "Les mots de passe ne corresponsdent pas"})
             else:
                 raise ValidationError(
-                    {"confirm_password": "Field is required for confirming password"})
+                    {"confirm_password": "Le champs confimer mot de passe est nécessaire"})
         elif 'confirm_password' in user:
-            raise ValidationError({"new_password": "Password mistmatch"})
+            raise ValidationError(
+                {"new_password": "Les mots de passe ne corresponsdent pas"})
 
         # update user
         if 'tel' in user:
@@ -92,11 +94,11 @@ def update_user():
         current_user.updated_at = datetime.datetime.now()
         db.session.commit()
 
-        return response_with(resp.SUCCESS_200, value={'msg': 'User updated successfully'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Mise à jour effectué avec succés'})
     except ValidationError as e:
         print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422,
-                             value={'msg': 'User update error', 'errors': e.messages})
+                             value={'msg': 'Erreur Modification Utilisateur', 'errors': e.messages})
     except exc.SQLAlchemyError as e:
         print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422, value={"errors": str(e.orig)})
@@ -112,11 +114,12 @@ def delete_user():
         data = request.get_json()
 
         if 'id' not in data:
-            raise ValidationError(message={'id': 'Field id is required'})
+            raise ValidationError(
+                message='Le champs id est obligatoire')
 
         user = User.find_by_id(id)
         if not user:
-            raise ValidationError(message={'id': 'user not found'})
+            raise ValidationError(message='L\'utilisateur n\'éxiste pas')
         db.session.delete(user)
 
         return response_with(resp.SUCCES_204)
@@ -132,20 +135,40 @@ def delete_user():
 def authenticate_user():
     try:
         data = request.get_json()
+        schema = UserSchema(only=('email', 'password'))
+        schema.load(data)
         current_user = User.find_by_email(data['email'])
 
         if not current_user:
-            return response_with(resp.INVALID_INPUT_422)
+            return response_with(resp.INVALID_INPUT_422, message='Email ou Mot de passe Incorrect"')
 
         if User.verify_hash(data["password"], current_user.password):
             access_token = create_access_token(
-                identity=data['email'], expires_delta=Config.JWT_ACCESS_TOKEN_EXPIRES)
+                identity=data['email'])
 
             return response_with(resp.SUCCESS_201,
-                                 value={'msg': f'Logged as {current_user.name}',
-                                        'acces_token': access_token})
+                                 value={'msg': f'Connecté en tant que {current_user.name}',
+                                        'acces_token': access_token, 'user_id': current_user.id})
         else:
-            return response_with(resp.UNAUTHORIZED_403, value={'msg': "Incorrect email or password"})
+            return response_with(resp.UNAUTHORIZED_403, value={'msg': "Email ou Mot de passe Incorrect"})
+    except ValidationError as e:
+        print(traceback.format_exc())
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
-        return response_with(resp.INVALID_INPUT_422)
+        return response_with(resp.SERVER_ERROR_500)
+
+
+@user_routes.route('/verify', methods=['GET'])
+@jwt_required()
+def verify_token():
+    try:
+        email = get_jwt_identity()
+        user = User.find_by_email(email)
+        if user:
+            return response_with(resp.SUCCESS_200)
+        else:
+            return response_with(resp.UNAUTHORIZED_403, message="Votre Session a expiré")
+    except Exception as e:
+        print(traceback.format_exc())
+        return response_with(resp.SERVER_ERROR_500)
