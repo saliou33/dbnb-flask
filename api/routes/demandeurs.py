@@ -168,8 +168,7 @@ def upload_check_demander():
 
         return response_with(resp.SUCCESS_200, value={'msg': errors})
     except Exception as e:
-
-        return response_with(resp.SERVER_ERROR_500, value={'msg': repr(e)})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': 'Fichier Invalide'})
 
 
 @demandeur_routes.route("/upload", methods=['POST'])
@@ -192,8 +191,10 @@ def upload_demandeur():
         return response_with(resp.SUCCESS_200, message='Demandeur créé avec succés')
     except ValidationError as e:
         print(traceback.format_exc())
-        return response_with(resp.SERVER_ERROR_500)
-
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
+    except Exception as e:
+        print(traceback.format_exc())
+        return response_with(resp.INVALID_INPUT_422, value={'msg': 'Fichier Invalide'})
 
 @demandeur_routes.route("/", methods=['PUT'])
 @jwt_required()
@@ -240,12 +241,15 @@ def delete_demandeurs():
         data = request.get_json()
         schema = GroupeSchema(exclude=['id'])
         schema.load(data)
-
+        print(data['demandeurs'])
         stmt = delete(Demandeur).where(Demandeur.id.in_(data['demandeurs']))
         db.session.execute(stmt)
+        db.session.commit()
 
-        return response_with(resp.SUCCES_204)
+        return response_with(resp.SUCCESS_200)
     except ValidationError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
+        print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
