@@ -10,7 +10,7 @@ from marshmallow import ValidationError
 from flask_jwt_extended import jwt_required
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-from sqlalchemy import exc
+from sqlalchemy import exc, delete, update
 from sqlalchemy.sql import or_
 import pandas as pd
 import traceback
@@ -24,11 +24,13 @@ demandeur_routes = Blueprint("demandeur_routes", __name__)
 def get_demandeurs():
     try:
         data = Demandeur.query.all()
+
         schema = DemandeurSchema(many=True)
         demandeurs = schema.dump(data)
 
         return response_with(resp.SUCCESS_200, value={'demandeurs': demandeurs})
     except ValidationError as e:
+        print(traceback.format_exc())
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
@@ -60,11 +62,13 @@ def select_demandeur():
         schema = GroupeSchema(exclude=['id'])
         schema.load(data)
 
-        for idx in data['demandeurs']:
-            demandeur = Demandeur.find_by_id(idx)
-            if demandeur and demandeur.is_selected == False:
-                demandeur.is_selected = True
-                demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
+        update(Demandeur).where(Demandeur.id.in_(data['demandeurs'])).values(is_selected=True, selection_expiration_date=datetime.utcnow() + relativedelta(years=1))
+
+        # for idx in data['demandeurs']:
+        #     demandeur = Demandeur.find_by_id(idx)
+        #     if demandeur and demandeur.is_selected == False:
+        #         demandeur.is_selected = True
+        #         demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
 
         db.session.commit()
         return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs séléctionnés avec succés'})
@@ -83,14 +87,16 @@ def deselect_demandeur():
         schema = GroupeSchema(exclude=['id'])
         schema.load(data)
 
-        for idx in data['demandeurs']:
-            demandeur = Demandeur.find_by_id(idx)
-            if demandeur and demandeur.is_selected == True:
-                demandeur.is_selected = False
-                demandeur.selection_expiration_date = None
+        update(Demandeur).where(Demandeur.id.in_(data['demandeurs'])).values(is_selected=False, selection_expiration_date=None, selection_count=Demandeur.selection_count + 1)
+
+        # for idx in data['demandeurs']:
+        #     demandeur = Demandeur.find_by_id(idx)
+        #     if demandeur and demandeur.is_selected == True:
+        #         demandeur.is_selected = False
+        #         demandeur.selection_expiration_date = None
 
         db.session.commit()
-        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs désavoué avec succés'})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs désélectionnés avec succés'})
     except ValidationError as e:
         return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
@@ -147,10 +153,14 @@ def read_file(file):
 @jwt_required()
 def upload_check_demander():
     try:
-        file = request.files['file']
+        print(request.files)
+        if 'file' in request.files:
+          file = request.files['file']
+        else:
+          raise ValidationError(message='Fichier Introuvable')
         data = read_file(file)
         errors = []
-        for index, row in data.iterrows():
+        for _, row in data.iterrows():
             demandeur = Demandeur.query.filter(
                 or_(Demandeur.cni == row['CNI'], Demandeur.tel == row['Téléphone'])).first()
             if demandeur:
@@ -166,7 +176,10 @@ def upload_check_demander():
 @jwt_required()
 def upload_demandeur():
     try:
-        file = request.files['file']
+        if 'file' in request.files:
+          file = request.files['file']
+        else:
+          raise ValidationError(message='Fichier Introuvable')
         data = read_file(file)
 
         for index, row in data.iterrows():
@@ -205,19 +218,31 @@ def update_demandeur():
         return response_with(resp.SERVER_ERROR_500)
 
 
-@demandeur_routes.route("/", methods=['DELETE'])
-@jwt_required()
+@demandeur_routes.route("/<int:id>", methods=['DELETE'])
+@jwt_required(id)
 def delete_demandeur():
     try:
-        data = request.get_json()
-
-        if 'id' not in data:
-            raise ValidationError(message={'id': 'Field id is required'})
-
         demandeur = Demandeur.find_by_id(id)
         if not demandeur:
-            raise ValidationError(message={'demandeur': 'Demandeur not found'})
+            raise ValidationError(message='Le demandeur n\'existe pas')
         db.session.delete(demandeur)
+
+        return response_with(resp.SUCCES_204)
+    except ValidationError as e:
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
+    except Exception as e:
+        return response_with(resp.SERVER_ERROR_500)
+
+@demandeur_routes.route("/delete", methods=['POST'])
+@jwt_required(id)
+def delete_demandeurs():
+    try:
+        data = request.get_json()
+        schema = GroupeSchema(exclude=['id'])
+        schema.load(data)
+
+        stmt = delete(Demandeur).where(Demandeur.id.in_(data['demandeurs']))
+        db.session.execute(stmt)
 
         return response_with(resp.SUCCES_204)
     except ValidationError as e:

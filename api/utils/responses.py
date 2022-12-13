@@ -1,12 +1,10 @@
 from flask import make_response, jsonify
 
-
 INVALID_INPUT_422 = {
     "http_code": 422,
     "code": "invalideInput",
     "msg": "Champs Invalide"
 }
-
 
 BAD_REQUEST_400 = {
     "http_code": 400,
@@ -25,7 +23,6 @@ SERVER_ERROR_404 = {
     "code": "notFound",
     "msg": "Ressource Introuvable"
 }
-
 
 UNAUTHORIZED_403 = {
     "http_code": 403,

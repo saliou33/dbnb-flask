@@ -17,6 +17,7 @@ class Demandeur(db.Model):
     is_selected = db.Column(db.Boolean, default=False)
     selection_expiration_date = db.Column(
         db.DateTime, default=datetime.utcnow())
+    selection_count = db.Column(db.Integer(), default=0)
 
     def create(self):
         db.session.add(self)

@@ -107,16 +107,10 @@ def update_user():
         return response_with(resp.SERVER_ERROR_500)
 
 
-@user_routes.route("/", methods=['DELETE'])
+@user_routes.route("/<int:id>", methods=['DELETE'])
 @jwt_required()
 def delete_user():
     try:
-        data = request.get_json()
-
-        if 'id' not in data:
-            raise ValidationError(
-                message='Le champs id est obligatoire')
-
         user = User.find_by_id(id)
         if not user:
             raise ValidationError(message='L\'utilisateur n\'éxiste pas')
@@ -135,12 +129,12 @@ def delete_user():
 def authenticate_user():
     try:
         data = request.get_json()
-        schema = UserSchema(only=('email', 'password'))
+        schema = UserUpdateSchema(only=('email', 'password'))
         schema.load(data)
         current_user = User.find_by_email(data['email'])
 
         if not current_user:
-            return response_with(resp.INVALID_INPUT_422, message='Email ou Mot de passe Incorrect"')
+            return response_with(resp.INVALID_INPUT_422, message='Email ou Mot de passe Incorrect')
 
         if User.verify_hash(data["password"], current_user.password):
             access_token = create_access_token(
@@ -148,7 +142,7 @@ def authenticate_user():
 
             return response_with(resp.SUCCESS_201,
                                  value={'msg': f'Connecté en tant que {current_user.name}',
-                                        'acces_token': access_token, 'user_id': current_user.id})
+                                        'token': access_token, 'user_id': current_user.id})
         else:
             return response_with(resp.UNAUTHORIZED_403, value={'msg': "Email ou Mot de passe Incorrect"})
     except ValidationError as e:

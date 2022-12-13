@@ -3,7 +3,6 @@ from datetime import datetime
 from marshmallow import fields, validate
 import enum
 
-
 class QrcodeOwner(enum.Enum):
     DEMANDEUR = 'demandeur'
     GROUPE = 'groupe'
@@ -35,5 +34,3 @@ class QrcodeSchema(ma.SQLAlchemyAutoSchema):
     owner_id = ma.auto_field()
     url = ma.auto_field()
     created_at = ma.auto_field()
-
-
