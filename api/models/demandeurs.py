@@ -1,7 +1,6 @@
 from api.utils.database import db, ma
 from datetime import datetime
-from passlib.hash import md5_crypt
-from marshmallow import fields, validate, validates, Schema, ValidationError
+from marshmallow import fields, validate, Schema
 import numpy as np
 
 

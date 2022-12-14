@@ -27,7 +27,7 @@ def get_qrcodes():
         qrcodes = Qrcode.query.all()
         schema = QrcodeSchema(many=True)
         qrcodes = schema.dump(qrcodes)
-        return response_with(resp.SUCCESS_200, value={'qrocdes': qrcodes})
+        return response_with(resp.SUCCESS_200, value={'qrcodes': qrcodes})
 
     except Exception as e:
         return response_with(resp.SERVER_ERROR_500)
