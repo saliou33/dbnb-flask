@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from api.utils.responses import response_with
 from api.utils import responses as resp
-from api.models.users import User, UserSchema, UserUpdateSchema
+from api.models.users import User, UserSchema, UserUpdateSchema, UserLoginSchema
 from api.utils.database import db
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
@@ -129,7 +129,7 @@ def delete_user():
 def authenticate_user():
     try:
         data = request.get_json()
-        schema = UserUpdateSchema(only=('email', 'password'))
+        schema = UserLoginSchema()
         schema.load(data)
         current_user = User.find_by_email(data['email'])
 

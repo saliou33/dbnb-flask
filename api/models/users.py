@@ -53,6 +53,13 @@ class UserSchema(ma.SQLAlchemySchema):
     created_at = ma.auto_field()
     updated_at = ma.auto_field()
 
+class UserLoginSchema(Schema):
+    class Meta:
+        fields = ('email', 'password')
+
+    password = fields.Str(required=True)
+    email = fields.Email(required=True)    
+
 
 class UserUpdateSchema(Schema):
     class Meta:

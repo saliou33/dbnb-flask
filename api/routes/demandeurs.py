@@ -64,12 +64,6 @@ def select_demandeur():
 
         update(Demandeur).where(Demandeur.id.in_(data['demandeurs'])).values(is_selected=True, selection_expiration_date=datetime.utcnow() + relativedelta(years=1))
 
-        # for idx in data['demandeurs']:
-        #     demandeur = Demandeur.find_by_id(idx)
-        #     if demandeur and demandeur.is_selected == False:
-        #         demandeur.is_selected = True
-        #         demandeur.selection_expiration_date = datetime.utcnow() + relativedelta(years=1)
-
         db.session.commit()
         return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs séléctionnés avec succés'})
     except ValidationError as e:
@@ -88,12 +82,6 @@ def deselect_demandeur():
         schema.load(data)
 
         update(Demandeur).where(Demandeur.id.in_(data['demandeurs'])).values(is_selected=False, selection_expiration_date=None, selection_count=Demandeur.selection_count + 1)
-
-        # for idx in data['demandeurs']:
-        #     demandeur = Demandeur.find_by_id(idx)
-        #     if demandeur and demandeur.is_selected == True:
-        #         demandeur.is_selected = False
-        #         demandeur.selection_expiration_date = None
 
         db.session.commit()
         return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs désélectionnés avec succés'})
