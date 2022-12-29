@@ -89,8 +89,8 @@ def get_demandeur():
         if 'code' not in data:
             raise ValidationError(message='Le code est obligatoire')
 
-        id = Fernet(Config.FERNET_KEY).decrypt(data['code']).decode('utf-8')
-        demandeur = Demandeur.find_by_id(int(id))
+        demandeur_id = Fernet(Config.FERNET_KEY).decrypt(data['code']).decode('utf-8')
+        demandeur = Demandeur.find_by_id(int(demandeur_id))
 
         if not demandeur:
             raise ValidationError(resp.BAD_REQUEST_400, value={'msg': 'Le demandeur est introuvable;'})
