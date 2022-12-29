@@ -10,7 +10,7 @@ import traceback
 
 groupe_routes = Blueprint("groupe_routes", __name__)
 
-
+# get groupes
 @groupe_routes.route("/", methods=['GET'])
 @jwt_required()
 def get_groupes():
@@ -28,7 +28,7 @@ def get_groupes():
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
-
+# get groupe(id)
 @groupe_routes.route("/<int:id>", methods=['GET'])
 @jwt_required()
 def get_groupe(id):
@@ -48,7 +48,7 @@ def get_groupe(id):
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
-
+# create groupe
 @groupe_routes.route("/", methods=['POST'])
 @jwt_required()
 def create_groupe():

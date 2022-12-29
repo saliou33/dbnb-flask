@@ -14,6 +14,7 @@ from api.routes.qrcodes import qrcode_routes
 app = Flask(__name__)
 
 #  environment variables
+
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = Config.GOOGLE_CREDENTIALS_PATH
 if os.environ.get('WORK_ENV') == 'PROD':
     app_config = ProductionConfig
@@ -22,8 +23,18 @@ elif os.environ.get('WORK_ENV') == 'TEST':
 else:
     app_config = DevelopmentConfig
 
-# app routes
+# app config
 
+app.config.from_object(app_config)
+CORS(app)
+jwt = JWTManager(app)
+db.init_app(app)
+ma.init_app(app)
+migrate.init_app(app, db)
+with app.app_context():
+    db.create_all()
+
+# app routes
 
 @app.route('/', methods=['GET'])
 def home():
@@ -36,7 +47,6 @@ app.register_blueprint(groupe_routes, url_prefix='/api/groupes')
 app.register_blueprint(qrcode_routes, url_prefix='/api/qrcodes')
 
 # global http response config
-
 
 @app.after_request
 def add_header(response):
@@ -61,15 +71,11 @@ def not_found(e):
     return response_with(resp.SERVER_ERROR_404)
 
 
-# app config
-app.config.from_object(app_config)
-CORS(app)
-jwt = JWTManager(app)
-db.init_app(app)
-ma.init_app(app)
-migrate.init_app(app, db)
-with app.app_context():
-    db.create_all()
+@jwt.expired_token_loader
+def my_expired_token_callback(jwt_header, jwt_payload):
+    return jsonify(code="sessionExpired", msg="Votre session a expiré."), 401
+
+# run app
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

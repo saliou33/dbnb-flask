@@ -14,7 +14,7 @@ import traceback
 # Demandeur routes
 user_routes = Blueprint("user_routes", __name__)
 
-
+# get users
 @user_routes.route('/', methods=['GET'])
 @jwt_required()
 def get_users():
@@ -23,7 +23,7 @@ def get_users():
     users = user_schema.dump(users)
     return response_with(resp.SUCCESS_200, value={'users': users})
 
-
+# get user(id)
 @user_routes.route('/<int:id>', methods=['GET'])
 @jwt_required()
 def get_user(id):
@@ -32,7 +32,7 @@ def get_user(id):
     user = user_schema.dump(user)
     return response_with(resp.SUCCESS_200, value={'user': user})
 
-
+# create user
 @user_routes.route('/', methods=['POST'])
 def create_user():
     try:
@@ -53,7 +53,7 @@ def create_user():
         print(e)
         return response_with(resp.SERVER_ERROR_500)
 
-
+# update user
 @user_routes.route('/', methods=['PUT'])
 @jwt_required()
 def update_user():
@@ -106,7 +106,7 @@ def update_user():
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
-
+# update user
 @user_routes.route("/<int:id>", methods=['DELETE'])
 @jwt_required()
 def delete_user():
@@ -124,7 +124,7 @@ def delete_user():
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
-
+# authenticate user
 @user_routes.route('/login', methods=['POST'])
 def authenticate_user():
     try:
@@ -152,17 +152,3 @@ def authenticate_user():
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
-
-@user_routes.route('/verify', methods=['GET'])
-@jwt_required()
-def verify_token():
-    try:
-        email = get_jwt_identity()
-        user = User.find_by_email(email)
-        if user:
-            return response_with(resp.SUCCESS_200)
-        else:
-            return response_with(resp.UNAUTHORIZED_403, message="Votre Session a expiré")
-    except Exception as e:
-        print(traceback.format_exc())
-        return response_with(resp.SERVER_ERROR_500)

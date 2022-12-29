@@ -57,8 +57,8 @@ class UserLoginSchema(Schema):
     class Meta:
         fields = ('email', 'password')
 
-    password = fields.Str(required=True)
     email = fields.Email(required=True)    
+    password = fields.Str(required=True)
 
 
 class UserUpdateSchema(Schema):
@@ -73,3 +73,4 @@ class UserUpdateSchema(Schema):
     email = fields.Email(required=True)
     name = fields.Str(validate=validate.Length(max=100))
     tel = fields.Str(validate=validate.Regexp("^\\+?[0-9]{9,}$"))
+    

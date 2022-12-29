@@ -19,7 +19,7 @@ import os
 
 qrcode_routes = Blueprint("qrcode_routes", __name__)
 
-
+# get qrcodes
 @qrcode_routes.route("/", methods=['GET'])
 @jwt_required()
 def get_qrcodes():
@@ -32,7 +32,7 @@ def get_qrcodes():
     except Exception as e:
         return response_with(resp.SERVER_ERROR_500)
 
-
+# get qrcode(id)
 @qrcode_routes.route("/<int:id>", methods=['GET'])
 @jwt_required
 def get_qrcode(id):
@@ -80,20 +80,20 @@ def generate_qrcode(bricks):
 
     return file_id
 
-
+#check qrcode validity
 @qrcode_routes.route("/check", methods=['POST'])
 @jwt_required()
 def get_demandeur():
     try:
         data = request.get_json()
         if 'code' not in data:
-            raise ValidationError(message='code not found')
+            raise ValidationError(message='Le code est obligatoire')
 
         id = Fernet(Config.FERNET_KEY).decrypt(data['code']).decode('utf-8')
         demandeur = Demandeur.find_by_id(int(id))
 
         if not demandeur:
-            raise ValidationError(resp.BAD_REQUEST_400, )
+            raise ValidationError(resp.BAD_REQUEST_400, value={'msg': 'Le demandeur est introuvable;'})
 
         demandeur = DemandeurSchema().dump(demandeur)
         return response_with(resp.SUCCESS_200, value={'demandeur': demandeur})
@@ -105,7 +105,7 @@ def get_demandeur():
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)
 
-
+#create qrcode
 @qrcode_routes.route("/", methods=['POST'])
 @jwt_required()
 def create_qrcode():
@@ -124,7 +124,7 @@ def create_qrcode():
 
         if not owner:
             raise ValidationError(
-                message={'owner': 'owner with id is not found'})
+                message={'owner': 'Le propriétaire est introuvable.'})
 
         if data['owner'] == 'demandeur':
             bricks.append(owner)
@@ -141,7 +141,7 @@ def create_qrcode():
         qrcode.create()
         qrcode = QrcodeSchema().dump(qrcode)
 
-        return response_with(resp.SUCCESS_200, value={'message': 'Qrcodes successfully generated', 'qrcode': qrcode})
+        return response_with(resp.SUCCESS_200, value={'message': 'Qrcode(s) généré avec succés', 'qrcode': qrcode})
 
     except ValidationError as e:
         print(traceback.format_exc())
