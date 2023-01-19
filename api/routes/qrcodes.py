@@ -15,7 +15,6 @@ import tempfile
 import zipfile
 import qrcode
 import uuid
-import os
 
 qrcode_routes = Blueprint("qrcode_routes", __name__)
 
@@ -43,7 +42,7 @@ def get_qrcode(id):
             raise ValidationError(message='Le Qrcode n\'existe pas')
         qrcode = schema.dump(qrcode)
     except ValidationError as e:
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         return response_with(resp.SERVER_ERROR_500)
 
@@ -141,11 +140,11 @@ def create_qrcode():
         qrcode.create()
         qrcode = QrcodeSchema().dump(qrcode)
 
-        return response_with(resp.SUCCESS_200, value={'message': 'Qrcode(s) généré avec succés', 'qrcode': qrcode})
+        return response_with(resp.SUCCESS_200, value={'msg': 'Qrcode(s) généré avec succés', 'qrcode': qrcode})
 
     except ValidationError as e:
         print(traceback.format_exc())
-        return response_with(resp.INVALID_INPUT_422, value={'message': e.messages})
+        return response_with(resp.INVALID_INPUT_422, value={'msg': e.messages})
     except Exception as e:
         print(traceback.format_exc())
         return response_with(resp.SERVER_ERROR_500)

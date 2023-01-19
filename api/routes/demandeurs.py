@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from api.utils.responses import response_with
 from api.utils import responses as resp
+from api.models.groupes import Groupe
 from api.models.demandeurs import Demandeur, \
     DemandeurSchema, DemandeurUpdateSchema, DemandeurMeta
 from api.models.groupes import GroupeSchema
@@ -59,11 +60,11 @@ def get_demandeur(id):
 def select_demandeur():
     try:
         data = request.get_json()
-        schema = GroupeSchema(exclude=['id'])
-        schema.load(data)
-
-        update(Demandeur).where(Demandeur.id.in_(data['demandeurs'])).values(is_selected=True, selection_expiration_date=datetime.utcnow() + relativedelta(years=1))
-
+        groupe = Groupe.find_by_id(data['groupe'])
+      
+        stmt  = update(Demandeur).where(Demandeur.id.in_(groupe.demandeurs))\
+                .values(is_selected=True, selection_expiration_date=datetime.utcnow() + relativedelta(years=1))
+        db.session.execute(stmt)
         db.session.commit()
         return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs séléctionnés avec succés'})
     except ValidationError as e:
@@ -78,10 +79,13 @@ def select_demandeur():
 def deselect_demandeur():
     try:
         data = request.get_json()
-        schema = GroupeSchema(exclude=['id'])
-        schema.load(data)
+        groupe = Groupe.find_by_id(data['groupe'])
+      
+        stmt  = update(Demandeur).where(Demandeur.id.in_(groupe.demandeurs)).\
+                values(is_selected=False, selection_expiration_date=datetime.utcnow(), selection_count=Demandeur.selection_count + 1)
+        db.session.execute(stmt)
+        db.session.commit()
 
-        update(Demandeur).where(Demandeur.id.in_(data['demandeurs'])).values(is_selected=False, selection_expiration_date=None, selection_count=Demandeur.selection_count + 1)
 
         db.session.commit()
         return response_with(resp.SUCCESS_200, value={'msg': 'Demandeurs désélectionnés avec succés'})

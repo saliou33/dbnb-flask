@@ -30,6 +30,5 @@ class GroupeSchema(ma.SQLAlchemyAutoSchema):
         model = Groupe
 
     id = ma.auto_field()
-    demandeurs = fields.List(fields.Int(), required=True,
-                             validate=validate.Length(min=1))
+    demandeurs = fields.List(fields.Int(), validate=validate.Length(min=1))
     created_at = ma.auto_field()
